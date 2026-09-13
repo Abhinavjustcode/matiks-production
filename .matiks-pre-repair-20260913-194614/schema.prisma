@@ -22,16 +22,6 @@ enum QuestionType {
   CODE
 }
 
-enum SubmissionStatus {
-  PENDING
-  RUNNING
-  ACCEPTED
-  WRONG_ANSWER
-  RUNTIME_ERROR
-  COMPILE_ERROR
-  TIME_LIMIT
-}
-
 model User {
   id           String        @id @default(cuid())
   username     String        @unique
@@ -82,6 +72,17 @@ model Question {
   updatedAt     DateTime      @updatedAt
   performances  Performance[]
   rounds        MatchRound[]
+rounds         MatchRound[]
+}
+
+enum SubmissionStatus {
+  PENDING
+  RUNNING
+  ACCEPTED
+  WRONG_ANSWER
+  RUNTIME_ERROR
+  COMPILE_ERROR
+  TIME_LIMIT
 }
 
 model CodingProblem {
@@ -95,7 +96,6 @@ model CodingProblem {
   testCases   Json
   constraints String?
   tags        Json
-  active      Boolean      @default(true)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   submissions Submission[]
@@ -117,8 +117,11 @@ model Submission {
   error       String?
   createdAt   DateTime         @default(now())
 
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problem     CodingProblem @relation(fields: [problemId], references: [id])
+
   user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  problem CodingProblem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  problem CodingProblem @relation(fields: [problemId], references: [id])
 
   @@index([userId, createdAt])
   @@index([problemId, createdAt])
