@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MatchStatus {
+  QUEUED
+  ACTIVE
+  COMPLETE
+  CANCELLED
+}
+
+enum QuestionType {
+  MCQ
+  OUTPUT
+  DEBUG
+  COMPLEXITY
+  CODE
+}
+
+model User {
+  id           String        @id @default(cuid())
+  username     String        @unique
+  rating       Int           @default(1000)
+  level        Int           @default(1)
+  currentEdge  Int           @default(50)
+  streak       Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  brain        BrainProfile?
+  performances Performance[]
+  matchesAsA   Match[]       @relation("playerA")
+  matchesAsB   Match[]       @relation("playerB")
+  submissions  Submission[]
+}
+
+model BrainProfile {
+  userId         String   @id
+  accuracyEma    Float    @default(0.5)
+  speedEma       Float    @default(0.5)
+  consistencyEma Float    @default(0.5)
+  confidence     Float    @default(0.2)
+  volatility     Float    @default(0.0)
+  topicScores    Json
+  recentResults  Json
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Question {
+  id            String        @id
+  domain        String
+  language      String?
+  type          QuestionType
+  topic         String
+  difficulty    Int
+  statement     String
+  code          String?
+  options       Json?
+  correctAnswer String
+  explanation   String
+  estimatedMs   Int           @default(7000)
+  qualityScore  Int           @default(80)
+  source        String        @default("generated")
+  active        Boolean       @default(true)
+  version       Int           @default(1)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  performances  Performance[]
+  rounds        MatchRound[]
+  rounds         MatchRound[]
+}
+
+enum SubmissionStatus {
+  PENDING
+  RUNNING
+  ACCEPTED
+  WRONG_ANSWER
+  RUNTIME_ERROR
+  COMPILE_ERROR
+  TIME_LIMIT
+}
+
+model CodingProblem {
+  id          String       @id
+  slug        String       @unique
+  title       String
+  difficulty  String
+  description String
+  starterCode Json
+  examples    Json
+  testCases   Json
+  constraints String?
+  tags        Json
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  submissions Submission[]
+}
+
+model Submission {
+  id          String           @id @default(cuid())
+  userId      String
+  problemId   String
+  language    String
+  code        String
+  status      SubmissionStatus @default(PENDING)
+  score       Int              @default(0)
+  runtimeMs   Int              @default(0)
+  memoryKb    Int              @default(0)
+  passedTests Int              @default(0)
+  totalTests  Int              @default(0)
+  output      String?
+  error       String?
+  createdAt   DateTime         @default(now())
+
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problem CodingProblem @relation(fields: [problemId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([problemId, createdAt])
+}
+
+model Match {
+  id           String       @id
+  playerAId    String
+  playerBId    String?
+  status       MatchStatus  @default(QUEUED)
+  targetEdge   Int
+  createdAt    DateTime     @default(now())
+  startedAt    DateTime?
+  completedAt  DateTime?
+  playerAScore Int          @default(0)
+  playerBScore Int          @default(0)
+  playerA      User         @relation("playerA", fields: [playerAId], references: [id])
+  playerB      User?        @relation("playerB", fields: [playerBId], references: [id])
+  rounds       MatchRound[]
+
+  @@index([status, targetEdge])
+}
+
+model MatchRound {
+  id         String   @id @default(cuid())
+  matchId    String
+  questionId String
+  roundIndex Int
+  createdAt  DateTime @default(now())
+  match      Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id])
+
+  @@unique([matchId, roundIndex])
+}
+
+model Performance {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  matchId    String?
+  correct    Boolean
+  responseMs Int
+  topic      String
+  difficulty Int
+  edgeBefore Int
+  edgeAfter  Int
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([topic, difficulty])
+}

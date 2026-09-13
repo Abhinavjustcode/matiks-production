@@ -1,0 +1,1 @@
+{"root":["./apps/api/prisma/seed.ts","./apps/api/src/server.ts","./apps/api/src/worker.ts","./apps/web/vite.config.ts","./apps/web/src/main.tsx","./packages/brain/src/index.ts","./packages/gemini/src/index.ts","./scripts/generate-questions.ts","./scripts/seed.ts","./scripts/validate-questions.ts"],"errors":true,"version":"5.9.3"}

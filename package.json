@@ -1,0 +1,53 @@
+{
+  "name": "matiks-production",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "npm@11",
+  "scripts": {
+    "dev": "concurrently \"npm:dev:api\" \"npm:dev:web\" \"npm:dev:worker\"",
+    "dev:api": "tsx apps/api/src/server.ts",
+    "dev:web": "vite --config apps/web/vite.config.ts --host 0.0.0.0",
+    "dev:worker": "tsx apps/api/src/worker.ts",
+    "build": "tsc -b && vite build --config apps/web/vite.config.ts",
+    "db:generate": "prisma generate --schema apps/api/prisma/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema=apps/api/prisma/schema.prisma",
+    "db:seed": "tsx apps/api/prisma/seed.ts",
+    "questions:generate": "tsx scripts/generate-questions.ts",
+    "questions:validate": "tsx scripts/validate-questions.ts",
+    "db:push": "prisma db push --schema apps/api/prisma/schema.prisma",
+    "db:validate": "prisma validate --schema apps/api/prisma/schema.prisma"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "dependencies": {
+    "@fastify/cors": "latest",
+    "@fastify/helmet": "latest",
+    "@fastify/jwt": "latest",
+    "@fastify/rate-limit": "latest",
+    "@fastify/websocket": "latest",
+    "@google/genai": "latest",
+    "@prisma/client": "^6.19.3",
+    "bullmq": "latest",
+    "fastify": "latest",
+    "ioredis": "latest",
+    "nanoid": "latest",
+    "pino": "latest",
+    "prisma": "^6.19.3",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "latest",
+    "concurrently": "latest",
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "tsx": "latest",
+    "typescript": "latest",
+    "vite": "latest"
+  }
+}

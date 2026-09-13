@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: matiks
+      POSTGRES_PASSWORD: matiks
+      POSTGRES_DB: matiks
+    ports: ["5432:5432"]
+    volumes: [matiks_pg:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U matiks -d matiks"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    ports: ["6379:6379"]
+    volumes: [matiks_redis:/data]
+    command: ["redis-server","--appendonly","yes"]
+    healthcheck:
+      test: ["CMD","redis-cli","ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  matiks_pg:
+  matiks_redis:
